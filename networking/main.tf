@@ -44,3 +44,26 @@ resource "azurerm_network_manager_static_member" "nmsm" {
   network_group_id          = azurerm_network_manager_network_group.netgroup[0].id
   target_virtual_network_id = each.value
 }
+
+resource "azurerm_network_manager_connectivity_configuration" "netconfig" {
+  count = try(var.enableNetworkManager ? 1 : 0, 0)
+  name                  = "connectivity-conf"
+  network_manager_id    = azurerm_network_manager.vnetmgr[0].id
+  connectivity_topology = "HubAndSpoke"
+  applies_to_group {
+    group_connectivity = "DirectlyConnected"
+    network_group_id   = azurerm_network_manager_network_group.netgroup[0].id
+  }
+  hub {
+    resource_id   = azurerm_virtual_network.hub-vnet.id
+    resource_type = "Microsoft.Network/virtualNetworks"
+  }
+}
+
+resource "azurerm_network_manager_deployment" "connectivity_deployment" {
+  count = try(var.enableNetworkManager ? 1 : 0, 0)
+  network_manager_id = azurerm_network_manager.vnetmgr[0].id
+  location           = var.location
+  scope_access       = "Connectivity"
+  configuration_ids  = [azurerm_network_manager_connectivity_configuration.netconfig[0].id]
+}
