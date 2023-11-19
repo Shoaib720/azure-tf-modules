@@ -11,8 +11,12 @@ variable "tags" {
   type = map(string)
 }
 
-resource "azurerm_resource_group" "example" {
-  name     = "example"
-  location = "West Europe"
-  tags = {}
+resource "azurerm_resource_group" "rg" {
+  name     = var.name
+  location = var.location
+  tags = var.tags
+}
+
+output "name" {
+  value = azurerm_resource_group.rg.name
 }
